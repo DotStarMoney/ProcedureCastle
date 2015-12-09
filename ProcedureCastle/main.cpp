@@ -2,10 +2,11 @@
 #include "painter.h"
 #include "utility.h"
 
-//TODO:
-// write shaders
-// fix logging code so that it actually writes the log/shows the error on crash
-// test!
+//	TODO:
+//		Create GraphicsCollection style lines, squares, circles and polygons
+//		Create GraphicsCollection style bitmap fonts
+//		Add in PC generation stuff
+
 
 
 #if DEBUG_SHOULD_ERROR_CHECK

@@ -143,14 +143,17 @@ xcopy "$(ProjectDir)dbg" "$(TargetDir)dbg" /e /y /i /r
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mapgenerator.cpp" />
     <ClCompile Include="painter.cpp" />
     <ClCompile Include="utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="boostgeometry.h" />
     <ClInclude Include="constants.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="debug_info.h" />
     <ClInclude Include="elpp.h" />
+    <ClInclude Include="mapgenerator.h" />
     <ClInclude Include="painter.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>

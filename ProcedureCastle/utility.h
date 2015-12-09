@@ -1,4 +1,6 @@
 #pragma once
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <stdint.h>
 #ifdef _WIN32
 #include <Windows.h>
@@ -7,6 +9,8 @@
 #include <ctime>
 #endif
 #include <string>
+
+#define M_2xPI M_PI*2
 
 double rnd(void);
 bool rnd_oneInXChance(const int _chance);

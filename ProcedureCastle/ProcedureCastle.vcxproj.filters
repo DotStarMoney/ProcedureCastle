@@ -16,6 +16,9 @@
     <Filter Include="Header Files\debug">
       <UniqueIdentifier>{bbe22647-22a4-42d6-a734-e8dee339ac8e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\painter">
+      <UniqueIdentifier>{64aaf4b4-7346-4f5a-9afa-7467dc6887ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -27,13 +30,13 @@
     <ClCompile Include="utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mapgenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug.h">
       <Filter>Header Files\debug</Filter>
-    </ClInclude>
-    <ClInclude Include="painter.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="debug_info.h">
       <Filter>Header Files\debug</Filter>
@@ -45,6 +48,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="painter.h">
+      <Filter>Header Files\painter</Filter>
+    </ClInclude>
+    <ClInclude Include="boostgeometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mapgenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
