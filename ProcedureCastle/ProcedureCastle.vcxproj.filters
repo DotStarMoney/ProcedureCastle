@@ -19,6 +19,9 @@
     <Filter Include="Header Files\painter">
       <UniqueIdentifier>{64aaf4b4-7346-4f5a-9afa-7467dc6887ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\painter\lodepng">
+      <UniqueIdentifier>{7095e59f-d505-4137-a10b-0a4d6fc0e453}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -32,6 +35,9 @@
     </ClCompile>
     <ClCompile Include="mapgenerator.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lodepng.cpp">
+      <Filter>Header Files\painter\lodepng</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +64,24 @@
     </ClInclude>
     <ClInclude Include="mapgenerator.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="linesegment2dbatch.h">
+      <Filter>Header Files\painter</Filter>
+    </ClInclude>
+    <ClInclude Include="triangle2dbatch.h">
+      <Filter>Header Files\painter</Filter>
+    </ClInclude>
+    <ClInclude Include="batches.h">
+      <Filter>Header Files\painter</Filter>
+    </ClInclude>
+    <ClInclude Include="darray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lodepng.h">
+      <Filter>Header Files\painter\lodepng</Filter>
+    </ClInclude>
+    <ClInclude Include="text2dbatch.h">
+      <Filter>Header Files\painter</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

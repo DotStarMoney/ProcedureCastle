@@ -3,7 +3,6 @@
 #include "utility.h"
 
 //	TODO:
-//		Create GraphicsCollection style lines, squares, circles and polygons
 //		Create GraphicsCollection style bitmap fonts
 //		Add in PC generation stuff
 
@@ -21,6 +20,8 @@ int main(int argv, const char** argc)
 	el::Loggers::reconfigureAllLoggers(conf);
 #endif
 
+	uint64_t ts, te;
+	int i;
 
 	Painter::screen(640, 480);
 	
@@ -29,26 +30,19 @@ int main(int argv, const char** argc)
 
 		Painter::cls();
 
-		Painter::line(
-			rnd_intRange(0, 639), rnd_intRange(0, 479),
-			rnd_intRange(0, 639), rnd_intRange(0, 479),
-			Painter::Color_t(1.0, rnd(), rnd(), 1.0)
-			);
+		for (i = 0; i < 256; i++)
+		{
+			Painter::line(
+				rnd_intRange(0, 639), rnd_intRange(0, 479),
+				rnd_intRange(0, 639), rnd_intRange(0, 479),
+				Painter::Color_t(1.0, rnd(), rnd(), 1.0), Painter::BF);
+		}
 
 
 		Painter::sync();
+
 	}
 	
-	Painter::screen(1024, 768);
 
-	Painter::cls();
-	Painter::line(
-		rnd_intRange(0, 639), rnd_intRange(0, 479),
-		rnd_intRange(0, 639), rnd_intRange(0, 479),
-		Painter::Color_t(1.0, rnd(), rnd(), 1.0)
-		);
-	Painter::sync();
-	
-	Painter::waitForKeyPress();
 
 }

@@ -4,6 +4,7 @@
 #include "glm\mat4x4.hpp"
 #include "glm\vec4.hpp"
 #include "glm\vec3.hpp"
+#include "darray.h"
 
 // needs threading support
 
@@ -37,6 +38,30 @@ public:
 		BF
 	};
 private:
+	template <class T>
+	class GraphicsBatch
+	{
+	public:
+		GraphicsBatch();
+		~GraphicsBatch();
+		void drawElements();
+		void clear();
+		void prepareBuffers();
+	protected:
+		virtual void _drawElements() = 0;
+		virtual void prepareAttributes() = 0;
+		virtual void prepareShaders() = 0;
+		GLuint gl_array;
+		GLuint gl_array_data;
+		GLuint gl_array_index;
+		bool loadedBuffers;
+		bool hasInit;
+		DArray<GLfloat> vertexData;
+		DArray<GLushort> indexData;
+	};
+	class LineSegment2DBatch;
+	class Triangle2DBatch;
+	class Text2DBatch;
 	class ScreenDestination : public RenderDestination {};
 	struct WindowData_s
 	{
@@ -47,13 +72,26 @@ private:
 		char* title;
 		glm::mat4 projection2D;
 	};
-	struct PrimitiveProgram_s
+
+	class PrimitiveProgram
 	{
+	public:
 		static const char* MVP_UNIFORM_NAME;
-		static const char* COLOR_UNIFORM_NAME;
 		GLuint programID;
 		GLint mvpMatrix_loc;
-		GLint color_loc;
+		void setupAttributes();
+		void enable();
+	};
+	class TextProgram
+	{
+	public:
+		static const char* MVP_UNIFORM_NAME;
+		static const char* TEXTURE_UNIFORM_NAME;
+		GLuint programID;
+		GLint mvpMatrix_loc;
+		GLint texture_loc;
+		void setupAttributes();
+		void enable();
 	};
 public:
 	static const ScreenDestination ScreenPointer;
@@ -67,6 +105,7 @@ public:
 	static void waitForKeyPress();
 	static bool keyPressed();
 	static void flushInput();
+	
 
 	// 2D Line Drawing: render to target
 	static void line
@@ -92,11 +131,17 @@ private:
 	static void staticDestruct();
 	static void constructShaders();
 	static void destructShaders();
+	static void screenConstruct();
+	static void screenDestruct();
 
+	static void resetZOrder();
 	static GLuint createShader(const char* _filename, GLenum _type);
 	static GLuint createShaderProgram(GLuint _vertShader, GLuint _fragShader);
 	static void passMat4ToCurrentProgram(GLuint _loc, glm::mat4& _mat4);
 	static void passVec4ToCurrentProgram(GLuint _loc, glm::vec4& _vec4);
+
+	static GLuint loadTexture(const char* _filename);
+
 
 	static void keyCallback(GLFWwindow* _window, GLint _key, GLint _scancode, GLint _action, GLint _mods);
 	static bool recordedKeyPress;
@@ -106,13 +151,20 @@ private:
 
 	static WindowData_s windowData;
 
+	static GLint curZOrder;
+
+	static LineSegment2DBatch* primitiveLineBatch;
+	static Triangle2DBatch* primitivePolyBatch;
+
 	static GLuint solidColor_frag;
 	static GLuint simpleTransform_vert;
-	static PrimitiveProgram_s primitive_prog;
-	
+	static PrimitiveProgram primitive_prog;
+	static GLuint debugFont;
+
 	static GLuint lastUsedProgram;
 	static bool hasUsedProgram;
 	static bool isScreenRendering;
 	static bool hasContext;
 };
+
 

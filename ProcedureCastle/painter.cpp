@@ -5,30 +5,50 @@
 #include <string>
 #include "glm\gtc\matrix_transform.hpp"
 #include "glm\gtc\type_ptr.hpp"
+#include "batches.h"
+#include <float.h>
+#include "lodepng.h"
+#include <vector>
 
 #define SHADER_PATH RESOURCE_PATH "shaders\\"
+#define FONT_PATH RESOURCE_PATH "gfx\\fonts\\"
 
 #define SHADER_SIMPLETRANSFORM_VERT SHADER_PATH "simpletransform.vert"
 #define SHADER_SOLIDCOLOR_FRAG SHADER_PATH "solidcolor.frag"
 
+#define FONT_DEBUG FONT_PATH "consolefont.png"
+
 #define IS_SCREENPTR(_X_) (typeid(_X_) == typeid(Painter::ScreenDestination))
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-#define USE_SHADER_(_X_) if ((lastUsedProgram != (_X_)) || (!hasUsedProgram)){ glUseProgram(_X_);
-#define _END_USE_SHADER() hasUsedProgram = true; }
+#define USE_SHADER_(_X_) if ((Painter::lastUsedProgram != (_X_)) || (!Painter::hasUsedProgram)){ glUseProgram(_X_);
+#define _END_USE_SHADER() Painter::hasUsedProgram = true; }
 
+#define PREPARE_BATCH(_X_, _Y_) if (_X_ == nullptr){ _X_ = new _Y_(); _X_->prepareBuffers(); }
 
-const char* Painter::PrimitiveProgram_s::MVP_UNIFORM_NAME = "u_mvp";
-const char* Painter::PrimitiveProgram_s::COLOR_UNIFORM_NAME = "u_color";
+#define MAX_Z_ORDER_DRAW 100000
+
+#define BATCH_DEFAULT_SIZE 16
+#define ADVANCE_Z_COUNTER -1
+
+const char* Painter::PrimitiveProgram::MVP_UNIFORM_NAME = "u_mvp";
+
+const char* Painter::TextProgram::MVP_UNIFORM_NAME = "u_mvp";
+const char* Painter::TextProgram::TEXTURE_UNIFORM_NAME = "u_tex";
 
 GLuint Painter::solidColor_frag;
 GLuint Painter::simpleTransform_vert;
-Painter::PrimitiveProgram_s Painter::primitive_prog;
+Painter::PrimitiveProgram Painter::primitive_prog;
 GLuint Painter::lastUsedProgram;
 bool Painter::hasUsedProgram = false;
 bool Painter::isScreenRendering = true;
 bool Painter::hasContext = false;
 bool Painter::recordedKeyPress = false;
+Painter::LineSegment2DBatch* Painter::primitiveLineBatch = nullptr;
+Painter::Triangle2DBatch* Painter::primitivePolyBatch = nullptr;
+GLint Painter::curZOrder;
+GLuint Painter::debugFont;
+
 
 const Painter::ScreenDestination Painter::ScreenPointer;
 Painter::WindowData_s Painter::windowData;
@@ -38,14 +58,111 @@ struct _painterRegistrationObject {
 };
 _painterRegistrationObject _painterRegistrationObjectMember;
 
+
+void Painter::TextProgram::setupAttributes()
+{
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, BUFFER_OFFSET(sizeof(GLfloat) * 3));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, BUFFER_OFFSET(sizeof(GLfloat) * 6));
+
+}
+void Painter::TextProgram::enable()
+{
+	USE_SHADER_(programID)
+
+		Painter::passMat4ToCurrentProgram(mvpMatrix_loc, Painter::windowData.projection2D);
+		glUniform1i(texture_loc, 0);
+
+	_END_USE_SHADER()
+}
+
+
+void Painter::PrimitiveProgram::setupAttributes()
+{
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*7, 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*7, BUFFER_OFFSET(sizeof(GLfloat)*3));
+}
+void Painter::PrimitiveProgram::enable()
+{
+	USE_SHADER_(programID)
+
+		Painter::passMat4ToCurrentProgram(mvpMatrix_loc, Painter::windowData.projection2D);
+
+	_END_USE_SHADER()
+}
+
+template <class T>
+Painter::GraphicsBatch<T>::GraphicsBatch()
+{
+	hasInit = false;
+}
+
+template <class T>
+Painter::GraphicsBatch<T>::~GraphicsBatch()
+{
+	if (hasInit)
+	{
+		glDeleteBuffers(1, &gl_array_index);
+		glDeleteBuffers(1, &gl_array_data);
+		glDeleteBuffers(1, &gl_array);
+	}
+}
+
+
+template <class T>
+void Painter::GraphicsBatch<T>::prepareBuffers()
+{
+	glGenVertexArrays(1, &gl_array);
+	glBindVertexArray(gl_array);
+	glGenBuffers(1, &gl_array_data);
+	glBindBuffer(GL_ARRAY_BUFFER, gl_array_data);
+	prepareAttributes();
+	glGenBuffers(1, &gl_array_index);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_array_index);
+	loadedBuffers = false;
+	hasInit = true;
+}
+
+template <class T>
+void Painter::GraphicsBatch<T>::drawElements()
+{
+	glBindVertexArray(gl_array);
+	glBindBuffer(GL_ARRAY_BUFFER, gl_array_data);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_array_index);
+
+	if (!loadedBuffers)
+	{
+		loadedBuffers = true;
+		glBufferData(GL_ARRAY_BUFFER, sizeof(T)*vertexData.getSize(), vertexData.getData(), GL_STREAM_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*indexData.getSize(), indexData.getData(), GL_STREAM_DRAW);
+	}
+	prepareShaders();
+	_drawElements();
+}
+template <class T>
+void Painter::GraphicsBatch<T>::clear()
+{
+	loadedBuffers = false;
+	vertexData.clear();
+	indexData.clear();
+}
+
+void Painter::resetZOrder()
+{
+	curZOrder = MAX_Z_ORDER_DRAW;
+}
+
 void Painter::staticConstruct()
 {
-	
 #if DEBUG_SHOULD_ERROR_CHECK
 	if (!glfwInit()) DEBUG_ERROR("Unable to initialize GLFW");
 #else
 	glfwInit();
-	glewInit();
 #endif	
 	windowData.scrx = -1;
 	windowData.scry = -1;
@@ -75,12 +192,18 @@ void Painter::constructShaders()
 #if DEBUG_SHOULD_LOG
 	DEBUG_LOG(INFO, "Loading shaders...");
 #endif
+
 	simpleTransform_vert = createShader(SHADER_SIMPLETRANSFORM_VERT, GL_VERTEX_SHADER);
 	solidColor_frag = createShader(SHADER_SOLIDCOLOR_FRAG, GL_FRAGMENT_SHADER);
 
 	primitive_prog.programID = createShaderProgram(simpleTransform_vert, solidColor_frag);
 	primitive_prog.mvpMatrix_loc = glGetUniformLocation(primitive_prog.programID, primitive_prog.MVP_UNIFORM_NAME);
-	primitive_prog.color_loc = glGetUniformLocation(primitive_prog.programID, primitive_prog.COLOR_UNIFORM_NAME);
+
+	simpleTransform_vert = createShader(SHADER_SIMPLETRANSFORM_VERT, GL_VERTEX_SHADER);
+	solidColor_frag = createShader(SHADER_SOLIDCOLOR_FRAG, GL_FRAGMENT_SHADER);
+
+	primitive_prog.programID = createShaderProgram(simpleTransform_vert, solidColor_frag);
+	primitive_prog.mvpMatrix_loc = glGetUniformLocation(primitive_prog.programID, primitive_prog.MVP_UNIFORM_NAME);
 }
 void Painter::destructShaders()
 {
@@ -169,15 +292,65 @@ GLuint Painter::createShaderProgram(GLuint _vertShader, GLuint _fragShader)
 	return programID;
 }
 
+GLuint Painter::loadTexture(const char* _filename)
+{
+	std::vector<unsigned char> texImg;
+	GLuint texID;
+	unsigned int w, h;
+
+#if DEBUG_SHOULD_ERROR_CHECK
+	if (lodepng::decode(texImg, w, h, _filename))
+	{
+		DEBUG_ERROR("Unable to load texture.");
+	}
+#else
+	lodepng::decode(texImg, w, h, _filename)
+#endif
+
+	glGenTextures(1, &texID);
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, &texImg[0]);
+}
+
+void Painter::screenConstruct()
+{
+	resetZOrder();
+	hasContext = true;
+	glewExperimental = GL_TRUE;
+#if DEBUG_SHOULD_ERROR_CHECK
+	if (glewInit()) DEBUG_ERROR("Unable to initialize GLEW");
+#else
+	glewInit();
+#endif
+	constructShaders();
+	//glClearColor(0.3922f, 0.5843f, 0.9294f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthFunc(GL_LESS);
+	glfwSetKeyCallback(windowData.window, keyCallback);
+	glEnable(GL_TEXTURE_2D);
+	debugFont = loadTexture(FONT_DEBUG);
+}
+void Painter::screenDestruct()
+{
+	glDeleteTextures(1, &debugFont);
+	glfwDestroyWindow(windowData.window);
+	destructShaders();
+	if (primitiveLineBatch != nullptr) delete(primitiveLineBatch);
+	primitiveLineBatch = nullptr;
+	if (primitivePolyBatch != nullptr) delete(primitivePolyBatch);
+	primitivePolyBatch = nullptr;
+	hasContext = false;
+}
+
 void Painter::screen(int _scrw, int _scrh, const char * _title, Mode_e _wmode)
 {
 	GLFWmonitor* fscreenPtr;
-	if (windowData.window != nullptr)
-	{
-		glfwDestroyWindow(windowData.window);
-		destructShaders();
-		hasContext = false;
-	}
+	if (windowData.window != nullptr) screenDestruct();
+	
 	if (_wmode == FULLSCREEN)
 	{
 		fscreenPtr = glfwGetPrimaryMonitor();
@@ -199,27 +372,12 @@ void Painter::screen(int _scrw, int _scrh, const char * _title, Mode_e _wmode)
 	if (windowData.title != nullptr) delete(windowData.title);
 	windowData.title = new char[strlen(_title) + 1];
 	strcpy(windowData.title, _title);
-	windowData.projection2D = glm::ortho((float) 0, (float) _scrw, (float) _scrh, (float) 0);
+	windowData.projection2D = glm::ortho((float) 0, (float) _scrw, (float) _scrh, (float) 0, FLT_MIN, FLT_MAX);
 	glViewport(0, 0, _scrw, _scrh);
 
-	if (!hasContext)
-	{
-		hasContext = true;
-		glewExperimental = GL_TRUE;
-#if DEBUG_SHOULD_ERROR_CHECK
-		if (glewInit()) DEBUG_ERROR("Unable to initialize GLEW");
-#else
-		glewInit();
-#endif
-		constructShaders();
-		//glClearColor(0.3922f, 0.5843f, 0.9294f, 1.0f);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glfwSetKeyCallback(windowData.window, keyCallback);
-	}
+	if (!hasContext) screenConstruct();
 }
+
 
 const char* Painter::getWindowTitle()
 {
@@ -256,6 +414,9 @@ void Painter::cls()
 	if (windowData.window == nullptr) DEBUG_ERROR("Could not clear because no window is defined.\n");
 #endif
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	resetZOrder();
+	if (primitiveLineBatch != nullptr) primitiveLineBatch->clear();
+	if (primitivePolyBatch != nullptr) primitivePolyBatch->clear();
 }
 
 void Painter::flushInput()
@@ -268,6 +429,8 @@ void Painter::sync()
 #if DEBUG_SHOULD_ERROR_CHECK
 	if (windowData.window == nullptr) DEBUG_ERROR("Could not sync because no window is defined.\n");
 #endif
+	if (primitiveLineBatch != nullptr) primitiveLineBatch->drawElements();
+	if (primitivePolyBatch != nullptr) primitivePolyBatch->drawElements();
 	glfwSwapBuffers(windowData.window);
 	flushInput();
 	glfwPollEvents();
@@ -341,73 +504,23 @@ void Painter::line
 #if DEBUG_SHOULD_ERROR_CHECK
 	if (windowData.window == nullptr) DEBUG_ERROR("Could not draw line because no window is defined.\n");
 #endif
-	glm::fvec3 pvert[4];
-	GLushort pindex[4];
-	GLuint abuffer;
-	GLuint lineVbo;
-	GLuint lineIbo;
-	GLenum drawType;
-	int verts;
 	
-	glGenVertexArrays(1, &abuffer);
-	glBindVertexArray(abuffer);
-	glEnableVertexAttribArray(0);
-
 	switch (_mode)
 	{
-	case B:
-	case BF:
-		pvert[0] = glm::fvec3(_x0, _y0, 0.0f);
-		pvert[1] = glm::fvec3(_x0, _y1, 0.0f);
-		pvert[2] = glm::fvec3(_x1, _y1, 0.0f);
-		pvert[3] = glm::fvec3(_x1, _y0, 0.0f);
-		pindex[0] = 0;
-		pindex[1] = 1;
-		pindex[2] = 2;
-		pindex[3] = 3;
-		verts = 4;
+	case LINE:
+		PREPARE_BATCH(primitiveLineBatch, LineSegment2DBatch);
+		primitiveLineBatch->addLine(_x0, _y0, _x1, _y1, curZOrder, _col);
 		break;
-	default:
-		pvert[0] = glm::fvec3(_x0, _y0, 0.0f);
-		pvert[1] = glm::fvec3(_x1, _y1, 0.0f);
-		pindex[0] = 0;
-		pindex[1] = 1;
-		verts = 2;
-	}
-
-	glGenBuffers(1, &lineVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, lineVbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::fvec3)*verts, pvert, GL_STREAM_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	glGenBuffers(1, &lineIbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineIbo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*verts, pindex, GL_STREAM_DRAW);
-
-	switch (_mode)
-	{
 	case B:
-		drawType = GL_LINE_LOOP;
+		PREPARE_BATCH(primitiveLineBatch, LineSegment2DBatch);
+		primitiveLineBatch->addSquare(_x0, _y0, _x1, _y1, curZOrder, _col);
 		break;
 	case BF:
-		drawType = GL_TRIANGLE_FAN;
+		PREPARE_BATCH(primitivePolyBatch, Triangle2DBatch);
+		primitivePolyBatch->addBox(_x0, _y0, _x1, _y1, curZOrder, _col);
 		break;
-	default:
-		drawType = GL_LINES;
 	}
-
-	setRenderTarget(/*the render target eventually*/);
 	
-	USE_SHADER_(primitive_prog.programID)
-	{
-		passMat4ToCurrentProgram(primitive_prog.mvpMatrix_loc, windowData.projection2D);
-		passVec4ToCurrentProgram(primitive_prog.color_loc, _col);
-	} _END_USE_SHADER();
-
-	glDrawElements(drawType, verts, GL_UNSIGNED_SHORT, nullptr);
-	
-	glDeleteBuffers(1, &lineVbo);
-	glDeleteBuffers(1, &lineIbo);
-	glDeleteBuffers(1, &abuffer);
+	curZOrder += ADVANCE_Z_COUNTER;
 }
 
