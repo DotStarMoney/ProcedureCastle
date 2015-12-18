@@ -73,26 +73,6 @@ private:
 		glm::mat4 projection2D;
 	};
 
-	class PrimitiveProgram
-	{
-	public:
-		static const char* MVP_UNIFORM_NAME;
-		GLuint programID;
-		GLint mvpMatrix_loc;
-		void setupAttributes();
-		void enable();
-	};
-	class TextProgram
-	{
-	public:
-		static const char* MVP_UNIFORM_NAME;
-		static const char* TEXTURE_UNIFORM_NAME;
-		GLuint programID;
-		GLint mvpMatrix_loc;
-		GLint texture_loc;
-		void setupAttributes();
-		void enable();
-	};
 public:
 	static const ScreenDestination ScreenPointer;
 	static void screen(int _scrw, int _scrh, const char* _title = _PAINTER_VERSION_STR_, Mode_e _wmode = WINDOWED);
@@ -150,16 +130,14 @@ private:
 	static void renderToScreen();
 
 	static WindowData_s windowData;
+	static GLuint debugFont;
 
 	static GLint curZOrder;
 
 	static LineSegment2DBatch* primitiveLineBatch;
 	static Triangle2DBatch* primitivePolyBatch;
 
-	static GLuint solidColor_frag;
-	static GLuint simpleTransform_vert;
-	static PrimitiveProgram primitive_prog;
-	static GLuint debugFont;
+	static ShaderProgram primitive_prog;
 
 	static GLuint lastUsedProgram;
 	static bool hasUsedProgram;

@@ -27,9 +27,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="painter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -38,6 +35,9 @@
     </ClCompile>
     <ClCompile Include="lodepng.cpp">
       <Filter>Header Files\painter\lodepng</Filter>
+    </ClCompile>
+    <ClCompile Include="painter.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -82,6 +82,12 @@
     </ClInclude>
     <ClInclude Include="text2dbatch.h">
       <Filter>Header Files\painter</Filter>
+    </ClInclude>
+    <ClInclude Include="shaderprogram.h">
+      <Filter>Header Files\painter</Filter>
+    </ClInclude>
+    <ClInclude Include="linhash2.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

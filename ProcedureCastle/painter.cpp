@@ -28,17 +28,14 @@
 
 #define MAX_Z_ORDER_DRAW 100000
 
-#define BATCH_DEFAULT_SIZE 16
 #define ADVANCE_Z_COUNTER -1
 
-const char* Painter::PrimitiveProgram::MVP_UNIFORM_NAME = "u_mvp";
+const char* Painter::ShaderProgram::MVP_DEFAULT_UNIFORM_NAME = "u_mvp";
 
 const char* Painter::TextProgram::MVP_UNIFORM_NAME = "u_mvp";
 const char* Painter::TextProgram::TEXTURE_UNIFORM_NAME = "u_tex";
 
-GLuint Painter::solidColor_frag;
-GLuint Painter::simpleTransform_vert;
-Painter::PrimitiveProgram Painter::primitive_prog;
+Painter::ShaderProgram Painter::primitive_prog;
 GLuint Painter::lastUsedProgram;
 bool Painter::hasUsedProgram = false;
 bool Painter::isScreenRendering = true;

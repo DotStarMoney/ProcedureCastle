@@ -1,6 +1,8 @@
 #include "debug.h"
-#include "painter.h"
+//#include "painter.h"
 #include "utility.h"
+#include "linhash2.h"
+#include <Windows.h>
 
 //	TODO:
 //		Create GraphicsCollection style bitmap fonts
@@ -19,7 +21,7 @@ int main(int argv, const char** argc)
 	el::Configurations conf(DEBUG_LOG_CONFIG_FILE);
 	el::Loggers::reconfigureAllLoggers(conf);
 #endif
-
+	/*
 	uint64_t ts, te;
 	int i;
 
@@ -43,6 +45,6 @@ int main(int argv, const char** argc)
 
 	}
 	
-
+	*/
 
 }
