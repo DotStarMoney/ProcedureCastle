@@ -89,5 +89,8 @@
     <ClInclude Include="linhash2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="fbgfx.h">
+      <Filter>Header Files\painter</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

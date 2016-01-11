@@ -161,6 +161,7 @@ xcopy "$(ProjectDir)dbg" "$(TargetDir)dbg" /e /y /i /r
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="mapgenerator.h" />
     <ClInclude Include="painter.h" />
+    <ClInclude Include="fbgfx.h" />
     <ClInclude Include="shaderprogram.h" />
     <ClInclude Include="text2dbatch.h" />
     <ClInclude Include="triangle2dbatch.h" />
