@@ -142,6 +142,10 @@ xcopy "$(ProjectDir)dbg" "$(TargetDir)dbg" /e /y /i /r
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="fbgfx.cpp" />
+    <ClCompile Include="fbgfx_view.cpp" />
+    <ClCompile Include="fbgfx_vieworthographic.cpp" />
+    <ClCompile Include="fbgfx_viewperspective.cpp" />
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mapgenerator.cpp" />
@@ -156,6 +160,9 @@ xcopy "$(ProjectDir)dbg" "$(TargetDir)dbg" /e /y /i /r
     <ClInclude Include="debug.h" />
     <ClInclude Include="debug_info.h" />
     <ClInclude Include="elpp.h" />
+    <ClInclude Include="fbgfx_view.h" />
+    <ClInclude Include="fbgfx_vieworthographic.h" />
+    <ClInclude Include="fbgfx_viewperspective.h" />
     <ClInclude Include="linesegment2dbatch.h" />
     <ClInclude Include="linhash2.h" />
     <ClInclude Include="lodepng.h" />

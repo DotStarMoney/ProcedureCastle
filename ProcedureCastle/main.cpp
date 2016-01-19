@@ -25,30 +25,7 @@ int main(int argv, const char** argc)
 
 
 
-	/*
-	uint64_t ts, te;
-	int i;
-
-	Painter::screen(640, 480);
 	
-	while (Painter::runApp())
-	{
-
-		Painter::cls();
-
-		for (i = 0; i < 256; i++)
-		{
-			Painter::line(
-				rnd_intRange(0, 639), rnd_intRange(0, 479),
-				rnd_intRange(0, 639), rnd_intRange(0, 479),
-				Painter::Color_t(1.0, rnd(), rnd(), 1.0), Painter::BF);
-		}
-
-
-		Painter::sync();
-
-	}
 	
-	*/
 
 }

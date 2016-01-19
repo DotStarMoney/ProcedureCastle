@@ -8,13 +8,23 @@
 #include "glm\vec2.hpp"
 #include <string>
 #include <vector>
+#include "debug.h"
 
 
 #define _FBGFX_VERSION_STR_ "FBGfx 1.0b"
 
 class FBGfx
 {
+	// --------------- Do we need all of these? -----------------
 	friend class StaticInitializationObject;
+	friend class RenderTarget;
+	friend class FrameBuffer;
+	friend class Texture;
+	friend class RenderBuffer;
+	friend class Font;
+	friend class Shader;
+	friend class View;
+	// ----------------------------------------------------------
 public:
 	typedef glm::fvec4 Color;
 	typedef glm::fvec2 Point;
@@ -22,6 +32,7 @@ public:
 	typedef GLfloat Float;
 	struct Quad
 	{
+		Quad() {}
 		Quad(Float _x0, Float _y0, Float _x1, Float _y1)
 		{
 			x0 = _x0;
@@ -80,8 +91,6 @@ public:
 		BLEND_ORDER_INDEPENDANT
 	};
 
-	// when constructed blankly, are unuseable, have private method that Painter can access for construction
-
 	class RenderTarget;
 	class FrameBuffer;
 	class Texture;
@@ -92,6 +101,8 @@ public:
 	class Shader;
 	
 	class View;
+	class ViewOrthographic;
+	class ViewPerspective;
 	
 private:
 	class GraphicsBatch;
@@ -106,25 +117,28 @@ private:
 		WindowingMode windowing_mode;
 		GLFWwindow* window;
 		std::string title;
-		glm::mat4 projection_2d;
 	};
 
-public:
+	class StaticInitializationObject
+	{
+	public:
+		StaticInitializationObject() { FBGfx::staticConstruct(); }
+		~StaticInitializationObject() { FBGfx::staticDestruct(); }
+	};
 	FBGfx();
-	~FBGfx();
+public:
 	FBGfx(const FBGfx&) = delete;
 	FBGfx& operator=(const FBGfx&) = delete;
-	static void Screen
-		(
+	static void Screen(
 			int _scrw, 
 			int _scrh, 
 			const char* _title = _FBGFX_VERSION_STR_, 
-			WindowingMode _wmode = WindowingMode::WINDOWED
-		);
+			WindowingMode _wmode = WindowingMode::WINDOWED);
 	static const char* get_window_title();
 	static void set_window_title(const char* _title = _FBGFX_VERSION_STR_);
 	static WindowingMode get_window_mode();
 	static void Sync();
+	static void Cls(Color clear_color);
 	static void Cls();
 	static void WaitForKeyPress();
 	static bool KeyPressed();
@@ -133,123 +147,92 @@ public:
 	static void SetTarget(RenderTarget& _target);
 	static void UseShader(Shader& _shader);
 	static void SetView(View& _view);
-	static void SetDirective
-		(
-			GraphicsDirective& _directive, 
-			GraphicsDirectiveValue& _value
-		)
+	static void SetDirective(
+			GraphicsDirective& _directive,
+			GraphicsDirectiveValue& _value);
 
-	static RenderBuffer& ScreenPtr();
-	static Font& DefaultFont();
-	static View& DefaultView();
+	static const RenderBuffer& ScreenPtr();
+	static const Font& DefaultFont();
+	static const View& DefaultView();
 
-	static void Line
-		(
+	static void Line(
 			RenderTarget& _target,
 			Point& _tl,
 			Point& _br,
 			Color& _col = Color(1.0, 1.0, 1.0, 1.0),
-			PrimitiveMode _mode = PrimitiveMode::LINE
-		);
-	static void Line
-		(
+			PrimitiveMode _mode = PrimitiveMode::LINE);
+	static void Line(
 			Point& _tl,
 			Point& _br,
 			Color& _col = Color(1.0, 1.0, 1.0, 1.0),
-			PrimitiveMode _mode = PrimitiveMode::LINE
-		);
+			PrimitiveMode _mode = PrimitiveMode::LINE);
 
-	static void Polygon
-		(
+	static void Polygon(
 			std::vector<Point>& _points,
-			Color& _col = Color(1.0, 1.0, 1.0, 1.0)
-		);
-	static void Polygon
-		(
+			Color& _col = Color(1.0, 1.0, 1.0, 1.0));
+	static void Polygon(
 			RenderTarget& _target,
 			std::vector<Point>& _points,
-			Color& _col = Color(1.0, 1.0, 1.0, 1.0)
-		);
+			Color& _col = Color(1.0, 1.0, 1.0, 1.0));
 
-	static void PolyLine
-		(
+	static void PolyLine(
 			std::vector<Point>& _points,
 			Color& _col = Color(1.0, 1.0, 1.0, 1.0),
-			bool _is_closed = false
-		);
-	static void PolyLine
-		(
+			bool _is_closed = false);
+	static void PolyLine(
 			RenderTarget& _target,
 			std::vector<Point>& _points,
 			Color& _col = Color(1.0, 1.0, 1.0, 1.0),
-			bool _is_closed = false
-		);
+			bool _is_closed = false);
 
-	static void Circle
-		(
+	static void Circle(
 			RenderTarget& _target,
 			Point& _center,
 			Float _radius,
 			Color& _col = Color(1.0, 1.0, 1.0, 1.0),
-			PrimitiveMode _mode = PrimitiveMode::LINE
-		);
-	static void Circle
-		(
+			PrimitiveMode _mode = PrimitiveMode::LINE);
+	static void Circle(
 			Point& _center,
 			Float _radius,
 			Color& _col = Color(1.0, 1.0, 1.0, 1.0),
-			PrimitiveMode _mode = PrimitiveMode::LINE
-		);
+			PrimitiveMode _mode = PrimitiveMode::LINE);
 
-	static void Put
-		(
+	static void Put(
 			RenderTarget& _target,
 			Point& _tl,
 			Texture& _source,
-			PutMode _mode = PutMode::PSET
-		);
-	static void Put
-		(
+			PutMode _mode = PutMode::PSET);
+	static void Put(
 			Point& _tl,
 			Texture& _source,
-			PutMode _mode = PutMode::PSET
-		);
-	static void Put
-		(
+			PutMode _mode = PutMode::PSET);
+	static void Put(
 			RenderTarget& _target,
 			Point& _tl,
 			Texture& _source,
 			Quad& _src_quad,
-			PutMode _mode = PutMode::PSET
-		);
-	static void Put
-		(
+			PutMode _mode = PutMode::PSET);
+	static void Put(
 			Point& _tl,
 			Texture& _source,
 			Quad& _src_quad,
-			PutMode _mode = PutMode::PSET
-		);
-	static void Put
-		(
+			PutMode _mode = PutMode::PSET);
+	static void Put(
 			RenderTarget& _target,
 			Point& _tl,
 			Texture& _source,
 			Float _scaleX,
 			Float _scaleY,
 			Float _angle,
-			PutMode _mode = PutMode::PSET
-		);
-	static void Put
-		(
+			PutMode _mode = PutMode::PSET);
+	static void Put(
 			Point& _tl,
 			Texture& _source,
 			Float _scaleX,
 			Float _scaleY,
 			Float _angle,
-			PutMode _mode = PutMode::PSET
-		);
-	static void Put
-		(
+			PutMode _mode = PutMode::PSET);
+	static void Put(
 			RenderTarget& _target,
 			Point& _tl,
 			Texture& _source,
@@ -257,52 +240,59 @@ public:
 			Float _scaleX,
 			Float _scaleY,
 			Float _angle,
-			PutMode _mode = PutMode::PSET
-		);
-	static void Put
-		(
+			PutMode _mode = PutMode::PSET);
+	static void Put(
 			Point& _tl,
 			Texture& _source,
 			Quad& _src_quad,
 			Float _scaleX,
 			Float _scaleY,
 			Float _angle,
-			PutMode _mode = PutMode::PSET
-		);
+			PutMode _mode = PutMode::PSET);
 
-	static void DrawText
-		(
+	static void Text(
 			RenderTarget& _target,
 			Point& _tl,
 			const char* _text,
 			Color& _col = Color(1.0, 1.0, 1.0, 1.0),
-			Font& _font = DefaultFont
-		);
-	static void DrawText
-		(
+			Font& _font = DefaultFont);
+	static void Text(
 			RenderTarget& _target,
 			Point& _tl,
 			const char* _text,
 			Color& _col = Color(1.0, 1.0, 1.0, 1.0),
-			Font& _font = DefaultFont
-		);
+			Font& _font = DefaultFont);
 
-	static void Blit
-		(
+	static void Blit(
 			RenderTarget& _dest,
 			Quad& _dest_quad,
 			RenderTarget& _src,
-			Quad& _src_quad
-		);
+			Quad& _src_quad);
 
 private:
 	static StaticInitializationObject initializer;
 	static View default_view;
 	static Font default_font;
 	static RenderBuffer screen_ptr;
+	static WindowData window;
 
+	static bool has_context;
 	static void staticConstruct();
 	static void staticDestruct();
+
+	static void on_window_size_update();
+	static void on_context_first_create();
+	static void on_new_window();
+
+	static bool recorded_key_press;
+	static void glfw_key_callback(
+			GLFWwindow* _window,
+			GLint _key,
+			GLint _scancode,
+			GLint _action,
+			GLint _mods);
+
+	/*
 	static void constructShaders();
 	static void destructShaders();
 	static void screenConstruct();
@@ -320,7 +310,7 @@ private:
 	static void keyCallback(GLFWwindow* _window, GLint _key, GLint _scancode, GLint _action, GLint _mods);
 	static bool recordedKeyPress;
 
-	static void setRenderTarget(/* something here eventually */);
+	static void setRenderTarget( something here eventually );
 	static void renderToScreen();
 
 	static WindowData_s windowData;
@@ -337,6 +327,7 @@ private:
 	static bool hasUsedProgram;
 	static bool isScreenRendering;
 	static bool hasContext;
+	*/
 };
 
 

@@ -39,6 +39,18 @@
     <ClCompile Include="painter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fbgfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fbgfx_view.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fbgfx_vieworthographic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fbgfx_viewperspective.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug.h">
@@ -91,6 +103,15 @@
     </ClInclude>
     <ClInclude Include="fbgfx.h">
       <Filter>Header Files\painter</Filter>
+    </ClInclude>
+    <ClInclude Include="fbgfx_view.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fbgfx_vieworthographic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fbgfx_viewperspective.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
